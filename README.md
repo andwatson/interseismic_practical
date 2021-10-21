@@ -1,4 +1,8 @@
 # interseismic_practical
-Practical exercise for the COMET InSAR course.
+Practical exercise on interseismic strain accumulation for the COMET InSAR course.
 
+To launch the full repo:
 https://mybinder.org/v2/gh/andwatson/interseismic_practical/main
+
+To launch just the practical notebook:
+https://mybinder.org/v2/gh/andwatson/interseismic_practical/main?filepath=Interseis_practical.ipynb
