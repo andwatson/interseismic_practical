@@ -56,7 +56,7 @@ def loglike(x, v, m, W):
     m = m * np.array([0.001, 1000, 0.001])
     
     #ll = np.sum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
-    ll = np.sum(0.0005*(np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
+    ll = np.sum(0.001*(np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
     
     return ll
 
