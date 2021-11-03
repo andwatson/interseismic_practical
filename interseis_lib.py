@@ -60,24 +60,26 @@ def fault_creep(x, s1, s2, d1, d2, c, xc=0):
           [same units as s]
 
     '''
-    
-    
+        
     v = (s1/np.pi)*np.arctan((x+xc)/d1) + c - s2*((1/np.pi)*np.arctan((x+xc)/d2) + (x<=0)*0.5 - (x>0)*0.5)
-    
-    
-    
-    #(m(1)/pi)*atan(x./m(2)) + m(3) - m(4)*((1/pi)*atan(x./m(5)) + (x<=0)*1/2 - (x>0)*1/2);
-    
+        
     return v
 
 #-------------------------------------------------------------------------------
 
 def gen_inc(inc_min, inc_max, heading, x, y):
+    '''
+    Generates a synthetic incidence angle grid based on a heading and a minimum 
+    and maximum incidence angle.
     
-    #d = (np.amax(x) - np.amin(x)) / np.cos(np.deg2rad(heading))
+    INPUTS
+        inc_min = minimum desired incidence angle
+        inc_max = maximum desired incidence angle
+    OUTPUTS
+        inc_grid = numpy array of incidence angles
+    '''
     
-    #m = (inc_max - inc_min) / d
-    
+    # calculate the length of the look direction across the grid
     if (0 <= heading < 45) or (315 <= heading <= 360):
         d = (np.amax(x) - np.amin(x)) / np.cos(np.deg2rad(heading))
     elif (45 <= heading < 135):
@@ -87,14 +89,15 @@ def gen_inc(inc_min, inc_max, heading, x, y):
     elif (225 <= heading < 315):
         d = - (np.amax(y) - np.amin(y)) / np.sin(np.deg2rad(heading))
     
+    # calculate the gradient of incidence angles to get from inc_min to inc_max
     m = (inc_max-inc_min) / d
-    #m = (inc_max-inc_min) / np.sqrt( (np.amax(x) - np.amin(x))**2 + (np.amax(y) - np.amin(y))**2 )
     
+    # split this gradient into x and y components
     mx = m * np.cos(np.deg2rad(heading))
     my = m * np.sin(np.deg2rad(heading))
     
+    # apply gradients to grid using 1st order 2D polynomial
     xx, yy = np.meshgrid(x,y)
-    
     inc_grid = mx*xx + my*yy + (inc_min + (inc_max-inc_min)/2)
     
     return inc_grid
@@ -103,6 +106,8 @@ def gen_inc(inc_min, inc_max, heading, x, y):
 
 def loglike(x, v, m, W):
     '''
+    Likelihood function for monte carlo.
+    
     INPUTS
         x = vector of distances from fault
         v = velocities at locations defined by x
@@ -121,6 +126,8 @@ def loglike(x, v, m, W):
 
 def logprior(m,m_min,m_max):
     '''
+    Log prior function for monte carlo.
+    
     INPUTS
         m = model values
         m_min = lower model limits
@@ -137,6 +144,8 @@ def logprior(m,m_min,m_max):
 
 def rms_misfit(a,b):
     '''
+    Calculate the root-mean-square misfit between 'a' and 'b'.
+    
     INPUTS
         a,b = two arrays of same length
     OUTPUTS
@@ -209,6 +218,8 @@ best_model = models_saved[np.nanargmax(ll_saved),:]
 
 def get_par(par_file,par_name):
     '''
+    Returns the value of the requested parameter in the parameter file.
+    
     INPUTS
         par_file = name of param file (str)
         par_name = name of desired par (str)
@@ -224,7 +235,8 @@ def get_par(par_file,par_name):
 def profile_data(x,y,data,prof_start,prof_end,params):
     
     '''
-    Generates a profile through gridded data.
+    Generates a profile through gridded data, returning both projected data points
+    and binned means.
     
     INPUTS:
     data = numpy array of values to profile
