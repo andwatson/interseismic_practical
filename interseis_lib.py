@@ -79,6 +79,14 @@ def gen_inc(inc_min, inc_max, heading, x, y):
         inc_grid = numpy array of incidence angles
     '''
     
+    # if value is negative, add 360 until its positive
+    while heading < 0:
+        heading = heading + 360
+        
+    # if heading is over 360, subtract 360 until within range
+    while heading > 360:
+        heading = heading - 360
+    
     # calculate the length of the look direction across the grid
     if (0 <= heading < 45) or (315 <= heading <= 360):
         d = (np.amax(x) - np.amin(x)) / np.cos(np.deg2rad(heading))
@@ -152,7 +160,7 @@ def rms_misfit(a,b):
         rms = rms misfit between a and b (a-b)
     '''
     
-    rms = np.sqrt(np.mean((a-b)**2))
+    rms = np.sqrt(np.nanmean((a-b)**2))
     
     return rms
 
