@@ -61,7 +61,7 @@ def fault_creep(x, s1, s2, d1, d2, c, xc=0):
 
     '''
         
-    v = (s1/np.pi)*np.arctan((x+xc)/d1) + c - s2*((1/np.pi)*np.arctan((x+xc)/d2) + (x<=0)*0.5 - (x>0)*0.5)
+    v = (s1/np.pi)*np.arctan((x+xc)/d1) + c - s2*((1/np.pi)*np.arctan((x+xc)/d2) + (x+xc<=0)*0.5 - (x+xc>0)*0.5)
         
     return v
 
@@ -112,7 +112,7 @@ def gen_inc(inc_min, inc_max, heading, x, y):
 
 #-------------------------------------------------------------------------------
 
-def loglike(x, v, m, W):
+def likelihood(x, v, m, W):
     '''
     Likelihood function for monte carlo.
     
@@ -126,13 +126,13 @@ def loglike(x, v, m, W):
     '''
     
     #ll = np.sum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
-    ll = np.sum(-0.01*(np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
+    ll = np.sum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
     
     return ll
 
 #-------------------------------------------------------------------------------
 
-def logprior(m,m_min,m_max):
+def prior(m,m_min,m_max):
     '''
     Log prior function for monte carlo.
     
