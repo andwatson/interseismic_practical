@@ -5,3 +5,4 @@ seaborn
 pandas
 pyproj
 cmcrameri
+pathlib

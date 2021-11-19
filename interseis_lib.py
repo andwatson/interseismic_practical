@@ -165,64 +165,6 @@ def rms_misfit(a,b):
     return rms
 
 #-------------------------------------------------------------------------------
-'''
-def run_inversion(n_iterations=10000):
-    ''
-    Bayesian monte carlo inversion taken from the main notebook.
-    Re-packaged as a function here to minimise code repeats.
-
-    INPUTS
-        x = vector of distances from fault
-        s = slip or slip rate on deep dislocation
-        d = locking depth [same units as x]
-        c = scalar offset in y [same unit as s]
-        xc = offset of fault location
-    OUTPUTS
-        v = vector of displacements or velocities at locations defined by x
-          [same units as s]
-    ''
-# run inversion
-for ii in range(n_iterations):
-    
-    # propose model using different step sizes for each parameter
-    m_trial = m_current.copy()
-    m_trial[0] = m_trial[0] + np.random.normal(loc=0, scale=2.5, size=1)/1000 # slip rate
-    m_trial[1] = m_trial[1] + np.random.normal(loc=0, scale=2.5, size=1)*1000 # locking depth
-    m_trial[2] = m_trial[2] + np.random.normal(loc=0, scale=1, size=1)/1000 # offset
-    
-    # check limits and skip the rest of the loop if any parameter is invalid
-    if not(lib.logprior(m_trial,m_min,m_max)):
-        n_reject += 1
-        models_saved[ii,:] = m_current
-        continue
-    
-    # calculate likelihood for the current and trial models
-    ll_current = lib.loglike(x, v, m_current, W)
-    ll_trial = lib.loglike(x, v, m_trial, W)
-    
-    #print(np.exp(ll_trial-ll_current))
-    
-    # test whether to keep trial model
-    #if np.exp(ll_current-ll_trial) > np.random.uniform(low=0, high=1,size=1):
-    if np.exp(ll_trial-ll_current) > np.random.uniform(low=0, high=1,size=1):
-    #if (ll_trial < ll_current) or (np.random.uniform(low=0, high=1,size=1) > 0.75):
-        m_current = m_trial
-        ll_current = ll_trial
-        n_accept += 1
-    else:
-        n_reject += 1
-    models_saved[ii,:] = m_current
-    ll_saved[ii] = ll_current
-    
-# convert back from metres to mm/yr and km
-models_saved[:,0] = models_saved[:,0] * 1000 # slip rate
-models_saved[:,1] = models_saved[:,1] / 1000 # locking depth
-models_saved[:,2] = models_saved[:,2] * 1000 # offset
-
-# find best fit model using min of likelihood function
-best_model = models_saved[np.nanargmax(ll_saved),:]
-'''
-#-------------------------------------------------------------------------------
 
 def get_par(par_file,par_name):
     '''
@@ -235,7 +177,11 @@ def get_par(par_file,par_name):
         par_val = value of param for par file
     '''
     
-    par_val = subp.check_output(['grep', par_name, par_file]).decode().split()[1].strip()
+    with open(par_file, 'r') as f:
+        for line in f.readlines():
+            if par_name in line:
+                par_val = line.split()[1].strip()
+    
     return par_val
 
 #-------------------------------------------------------------------------------
