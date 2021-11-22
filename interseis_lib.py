@@ -11,10 +11,11 @@ import subprocess as subp
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as path
+import warnings
 
 #-------------------------------------------------------------------------------
 
-def screw_disc(x, s, d, c, xc = 0):
+def screw_disc(x, s, d, c, xc=0):
     '''
     Function to calculate displacements/velocities due to slip on a deep 
     screw dislocation (infinitely long strike slip fault. 
@@ -125,8 +126,7 @@ def likelihood(x, v, m, W):
         ll = value of the loglikelihood function
     '''
     
-    #ll = np.sum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
-    ll = np.sum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
+    ll = np.nansum((np.transpose(v-screw_disc(x, m[0], m[1], m[2]))*W*(v-screw_disc(x, m[0], m[1], m[2]))));
     
     return ll
 
@@ -250,8 +250,10 @@ def profile_data(x,y,data,prof_start,prof_end,params):
         poly_points = poly.contains_points(np.transpose([trim_xx,trim_yy]))
                             
         in_poly_vals = trim_data[poly_points]
-
-        bin_val[ii] = np.nanmean(in_poly_vals)
+        
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            bin_val[ii] = np.nanmean(in_poly_vals)
     
     # get point cloud
     poly_x = np.array([bin_x1[0], bin_x1[-1], bin_x2[-1], bin_x2[0]])
