@@ -194,15 +194,19 @@ def profile_data(x,y,data,prof_start,prof_end,params):
     
     INPUTS:
     data = numpy array of values to profile
-    x = vector of coords for the x axis
-    y = vector of coords for the y axis
+    x = either a vector or array of coords for the x axis
+    y = either a vector or array of coords for the y axis
     prof_start = (x, y) pair for the start of the profile line
     prof_end = (x, y) pair for the end of the profile line
     params = dictionary of parameters for the profiler (currently nbins and width)
     
     '''
     
-    xx,yy = np.meshgrid(x,y)
+    # If provided vector of coords, convert to arrays
+    if x.ndim == 1 or y.ndim == 1:
+        xx,yy = np.meshgrid(x,y)
+    else:
+        xx, yy = x, y
     
     prof_start = np.array(prof_start)
     prof_end = np.array(prof_end)
