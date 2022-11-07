@@ -68,6 +68,28 @@ def fault_creep(x, s1, s2, d1, d2, c, xc=0):
 
 #-------------------------------------------------------------------------------
 
+def shear_strain(x, s, d):
+    '''
+    Calculate shear strain rate based on slip rate and locking depth from a 
+    screw dislocation model. From Savage & Burford (1973).
+    
+    INPUTS
+        x = vector of distances from fault
+        s = slip or slip rate on deep dislocation
+        d = locking depth [same units as x]
+    OUTPUTS
+        e = shear strain [per year]
+          
+    USEAGE:
+        e = shear_strain(x, s, d)
+    '''
+    
+    e = ((s*d)/(2*np.pi)) * np.power((x.astype(float)**2 + d**2),-1)
+    
+    return e
+    
+#-------------------------------------------------------------------------------
+
 def gen_inc(inc_min, inc_max, heading, x, y):
     '''
     Generates a synthetic incidence angle grid based on a heading and a minimum 
@@ -329,3 +351,42 @@ def ccw(A,B,C):
 
 def intersect(A,B,C,D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
+#-------------------------------------------------------------------------------
+
+def sliding_window_mean(x, y, wind_size):
+    '''
+    A very simple sliding window average that crops the ends where the window
+    would be undersize.
+    
+    INPUTS:
+        x = distance
+        y = value at distance
+        wind_size = size of window, must be an odd integer
+        
+    OUTPUTS:
+        x_smooth = reduced x coords
+        y_smooth = mean for each window
+    '''
+    
+    # make sure window size is an odd number
+    assert (wind_size % 2) == 1, "Window size must be an odd number."
+    
+    # number of elements in output
+    n_out = x.size-(wind_size-1)
+    
+    # size of window either side of centre point
+    wind_half = int((wind_size-1)/2)
+    
+    # reduced x
+    x_smooth = x[wind_half:-wind_half]
+    
+    # pre-allocate
+    y_smooth = np.zeros(n_out)
+    
+    # loop through each window, taking the mean
+    for ii in range(n_out):
+        y_smooth[ii] = np.nanmean(y[ii:(ii+wind_size)])
+    
+    return x_smooth, y_smooth
+    
