@@ -6,3 +6,4 @@ pandas
 pyproj
 cmcrameri
 pathlib
+pygmt
