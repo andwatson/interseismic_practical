@@ -1,0 +1,16 @@
+name: interseis-practical
+channels:
+ - conda-forge
+ - defaults
+dependencies:
+ - python=3.10
+ - matplotlib
+ - numpy
+ - scipy
+ - seaborn
+ - pandas
+ - pyproj
+ - cmcrameri
+ - pathlib
+ - gmt=6.4.0
+ - pygmt=0.7.0
