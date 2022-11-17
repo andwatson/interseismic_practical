@@ -3,6 +3,9 @@
 Practical exercise on interseismic strain accumulation for the COMET InSAR course.
 
 To launch the practical notebook (use this if you want to run through the practical):
+- [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/andwatson/interseismic_practical/Qi?filepath=Interseis_practical.ipynb)
+
+If that notebook fails to launch, try this one instead:
 - [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/andwatson/interseismic_practical/main?filepath=Interseis_practical.ipynb)
 
 To launch the full repo (use this if you want to experiment with the code):
