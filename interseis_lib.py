@@ -14,6 +14,9 @@ import matplotlib.path as path
 import warnings
 from cmcrameri import cm # this is additional scientific colour maps, see "https://www.fabiocrameri.ch/colourmaps/"
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import warnings
+# Settings the warnings to be ignored
+warnings.filterwarnings('ignore')
 
 #-------------------------------------------------------------------------------
 
