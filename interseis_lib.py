@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as path
 import warnings
+from cmcrameri import cm # this is additional scientific colour maps, see "https://www.fabiocrameri.ch/colourmaps/"
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 #-------------------------------------------------------------------------------
 
@@ -389,4 +391,319 @@ def sliding_window_mean(x, y, wind_size):
         y_smooth[ii] = np.nanmean(y[ii:(ii+wind_size)])
     
     return x_smooth, y_smooth
-    
+
+
+def plot_screw_disc(x, s, d, v, s_ref, d_ref, v_ref, v_grid):
+    # Let's break this first plotting section down
+
+    # create a figure and axes for our plot
+    fig, axs = plt.subplots(1, 2, figsize=(15, 5))
+
+    # plot the model velocities as a line to the first axes/subplot
+    axs[0].plot(x, v * 1000, color="blue", label='Your model: \ns = ' + str(s) + ' mm/yr, d = ' + str(d) + ' km')
+
+    # plot the reference model
+    axs[0].plot(x, v_ref * 1000, color="red", label='Reference model: \ns = {} mm/yr, d = {} km'.format(s_ref, d_ref))
+
+    # draw dashed lines at x=0 (the fault trace) and at y=0
+    axs[0].plot([0, 0], [axs[0].get_ylim()[0], axs[0].get_ylim()[1]], color='grey', linestyle='dashed')
+    axs[0].plot([axs[0].get_xlim()[0], axs[0].get_xlim()[1]], [0, 0], color='grey', linestyle='dashed')
+
+    # add a legend
+    axs[0].legend(fontsize=12)
+
+    # set labels for the x and y axes
+    axs[0].set_xlabel('Fault-perpendicular distance (km)')
+    axs[0].set_ylabel('Fault-parallel velocity (mm/yr)')
+
+    # colour plot of our 2D velocities, now on our second axes/subplot
+    im = axs[1].imshow(v_grid * 1000, extent=[x.min(), x.max(), x.min(), x.max()], cmap=cm.vik)
+
+    # add a labeled colour bar
+    plt.colorbar(im, ax=axs[1], label="Fault-parallel velocity (mm/yr)")
+
+    # add the fault as a solid line
+    axs[1].plot([x.min(), x.max()], [0, 0], color='black', label='Fault trace')
+
+    # add the profile as a dashed line
+    axs[1].plot([0, 0], [x.min(), x.max()], color='black', linestyle='dashed', label="Profile line")
+
+    # add legend
+    axs[1].legend(fontsize=12)
+
+    # set labels for the x and y axes
+    axs[1].set_xlabel('x-coord (km)')
+    axs[1].set_ylabel('y-coord (km)')
+
+    # this alters subplot spacing
+    fig.tight_layout()
+
+    # display the plot
+    plt.show()
+
+
+def plot_screw_disc_in_los(x, v, inc_grid, v_grid, v_grid_los):
+    '''
+    Plot a 2x2 panel of profiles extracted from incidence array, velocity array and los velocity array.
+    Draw fault perpendicular profiles in near, mid and far range to show the effect of changing incidence angle along range
+    '''
+    # plot
+    fig, axs = plt.subplots(2, 2, figsize=(15, 12))
+
+    # get colour limits for grids
+    cmin, cmax = np.amin(v_grid * 1000), np.amax(v_grid * 1000)
+
+    # incidence angle grid
+    im = axs[0, 0].imshow(inc_grid, extent=[x.min(), x.max(), x.min(), x.max()], cmap=cm.batlow)
+    plt.colorbar(im, ax=axs[0, 0], label="Incidence angle (degrees)")
+    axs[0, 0].plot([int(x.min()/2), int(x.min()/2)], [x.min(), x.max()], color='black', linestyle='dotted')
+    axs[0, 0].plot([0, 0], [x.min(), x.max()], color='black', linestyle='dashed')
+    axs[0, 0].plot([int(x.max()/2), int(x.max()/2)], [x.min(), x.max()], color='black', linestyle='solid')
+
+    # East-west velocity grid
+    im = axs[0, 1].imshow(v_grid * 1000, extent=[x.min(), x.max(), x.min(), x.max()], cmap=cm.vik, vmin=cmin, vmax=cmax)
+    plt.colorbar(im, ax=axs[0, 1], label="East-west velocity (mm/yr)")
+    axs[0, 1].plot([x.min(), x.max()], [0, 0], color='black', label='Fault trace')
+    axs[0, 1].plot([0, 0], [x.min(), x.max()], color='red', linestyle='dashed', label="Profile line")
+    axs[0, 1].legend(fontsize=12)
+
+    # 1D models
+    axs[1, 0].plot(x, v * 1000, color='red', label='original (East-West) velocity')
+    axs[1, 0].plot(x, v_grid_los[:, 50] * 1000, color='black', linestyle='dotted', label='LOS velocity near range')
+    axs[1, 0].plot(x, v_grid_los[:, 100] * 1000, color='black', linestyle='dashed', label='LOS velocity mid range')
+    axs[1, 0].plot(x, v_grid_los[:, 150] * 1000, color='black', linestyle='solid', label='LOS velocity far range')
+
+    axs[1, 0].plot([0, 0], [axs[1, 0].get_ylim()[0], axs[1, 0].get_ylim()[1]], color='grey', linestyle='dashed')
+    axs[1, 0].plot([axs[1, 0].get_xlim()[0], axs[1, 0].get_xlim()[1]], [0, 0], color='grey', linestyle='dashed')
+    axs[1, 0].set_xlabel('Fault-perpendicular distance (km)')
+    axs[1, 0].set_ylabel('Velocity (mm/yr)')
+    axs[1, 0].legend()
+
+    # Line-of-sight velocity grid
+    im = axs[1, 1].imshow(v_grid_los * 1000, extent=[x.min(), x.max(), x.min(), x.max()], cmap=cm.vik, vmin=cmin, vmax=cmax)
+    plt.colorbar(im, ax=axs[1, 1], label="Line-of-sight velocity (mm/yr)")
+    axs[1, 1].plot([x.min(), x.max()], [0, 0], color='black')
+    axs[1, 1].plot([-100, -100], [x.min(), x.max()], color='black', linestyle='dotted')
+    axs[1, 1].plot([0, 0], [x.min(), x.max()], color='black', linestyle='dashed')
+    axs[1, 1].plot([100, 100], [x.min(), x.max()], color='black', linestyle='solid')
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_maps_with_reference(vel_asc_regrid, lon_regrid, lat_regrid, fault_trace, ref_poly, vel_desc_regrid):
+    # plot the regridded velocities to make sure they're fine
+    fig, axs = plt.subplots(1, 2, figsize=(15, 10))
+
+    # ascending velocities
+    im = axs[0].imshow(vel_asc_regrid, extent=[lon_regrid[0], lon_regrid[-1], lat_regrid[0], lat_regrid[-1]], \
+                       cmap=cm.vik, vmin=-20, vmax=20)
+    axs[0].plot(fault_trace[:, 0], fault_trace[:, 1], color="red")
+    axs[0].plot(ref_poly[:, 0], ref_poly[:, 1], color='black')
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='LOS velocity (mm/yr)')
+    axs[0].set_title('087A_04904_121313')
+    axs[0].set_xlim(np.amin(lon_regrid), np.amax(lon_regrid))
+    axs[0].set_ylim(np.amin(lat_regrid), np.amax(lat_regrid))
+
+    # descending velocities
+    im = axs[1].imshow(vel_desc_regrid, extent=[lon_regrid[0], lon_regrid[-1], lat_regrid[0], lat_regrid[-1]], \
+                       cmap=cm.vik, vmin=-20, vmax=20)
+    axs[1].plot(fault_trace[:, 0], fault_trace[:, 1], color="red")
+    axs[1].plot(ref_poly[:, 0], ref_poly[:, 1], color='black')
+    divider = make_axes_locatable(axs[1])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='LOS velocity (mm/yr)')
+    axs[1].set_title('167D_04884_131212')
+    axs[1].set_xlim(np.amin(lon_regrid), np.amax(lon_regrid))
+    axs[1].set_ylim(np.amin(lat_regrid), np.amax(lat_regrid))
+
+    fig.tight_layout(w_pad=3)
+    plt.show()
+
+
+def plot_decomposed_maps(vel_para, vel_U,lon_regrid, lat_regrid, fault_trace, poly_asc, poly_desc):
+    # plot the results
+    fig, axs = plt.subplots(1, 2, figsize=(15, 10))
+
+    # East velocities
+    im = axs[0].imshow(vel_para, extent=[lon_regrid[0], lon_regrid[-1], lat_regrid[0], lat_regrid[-1]], \
+                       cmap=cm.vik, vmin=-20, vmax=20)
+    axs[0].plot(fault_trace[:, 0], fault_trace[:, 1], color="red")
+    axs[0].plot(poly_asc[:, 0], poly_asc[:, 1], color="black", linestyle='dashed')
+    axs[0].plot(poly_desc[:, 0], poly_desc[:, 1], color="black", linestyle='dashed')
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='Fault-parallel velocity (mm/yr)')
+    axs[0].set_title('Fault-parallel')
+    axs[0].set_xlim(np.amin(lon_regrid), np.amax(lon_regrid))
+    axs[0].set_ylim(np.amin(lat_regrid), np.amax(lat_regrid))
+
+    # Up velocities
+    im = axs[1].imshow(vel_U, extent=[lon_regrid[0], lon_regrid[-1], lat_regrid[0], lat_regrid[-1]], \
+                       cmap=cm.vik, vmin=-20, vmax=20)
+    axs[1].plot(fault_trace[:, 0], fault_trace[:, 1], color="red")
+    axs[1].plot(poly_asc[:, 0], poly_asc[:, 1], color="black", linestyle='dashed')
+    axs[1].plot(poly_desc[:, 0], poly_desc[:, 1], color="black", linestyle='dashed')
+    divider = make_axes_locatable(axs[1])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='Vertical velocity (mm/yr)')
+    axs[1].set_title('Up')
+    axs[1].set_xlim(np.amin(lon_regrid), np.amax(lon_regrid))
+    axs[1].set_ylim(np.amin(lat_regrid), np.amax(lat_regrid))
+
+    plt.tight_layout(w_pad=3)
+    plt.show()
+
+def plot_utm_maps(xx_utm, yy_utm, vel_para, vel_U, fault_trace_utm, xlim, ylim):
+    # replot with new coordinates
+    fig, axs = plt.subplots(1, 2, figsize=(15, 7))
+
+    # East velocities
+    im = axs[0].scatter(xx_utm.flatten(), yy_utm.flatten(), s=2, c=vel_para.flatten(), cmap=cm.vik, vmin=-20, vmax=20)
+    axs[0].plot(fault_trace_utm[:, 0], fault_trace_utm[:, 1], color="red")
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='Fault-parallel velocity (mm/yr)')
+    axs[0].set_aspect('equal', 'box')
+    axs[0].set_title('Fault-parallel')
+    axs[0].set_xlabel('x-coord (km)')
+    axs[0].set_ylabel('y-coord (km)')
+    axs[0].set_xlim(xlim)
+    axs[0].set_ylim(ylim)
+
+    # Up velocities
+    im = axs[1].scatter(xx_utm.flatten(), yy_utm.flatten(), s=2, c=vel_U.flatten(), cmap=cm.vik, vmin=-20, vmax=20)
+    axs[1].plot(fault_trace_utm[:, 0], fault_trace_utm[:, 1], color="red")
+    divider = make_axes_locatable(axs[1])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='Vertical velocity (mm/yr)')
+    axs[1].set_aspect('equal', 'box')
+    axs[1].set_title('Up')
+    axs[1].set_xlabel('x-coord (km)')
+    axs[1].set_ylabel('y-coord (km)')
+    axs[1].set_xlim(xlim)
+    axs[1].set_ylim(ylim)
+
+    fig.tight_layout(w_pad=5)
+    plt.show()
+
+def plot_profile(xx_utm, yy_utm, vel_para, fault_trace_utm, prof_start, prof_end, points_poly, xlim, ylim,
+                 points_dist, points_val, prof_bin_mids, bin_val, intersect_dist, intersect_angle):
+    '''
+    Plotting a profile in UTM coordinates in map view and in cross section
+
+    INPUTS:
+        xx_utm, yy_utm, vel_para = 2D array
+        fault_trace_utm, points_poly = 2 column x,y coordinates of fault and profile corner coordinates
+        prof_start, prof_end = tuple x,y coordinates for end points of profile in map view
+        points_poly = corner coordinates of profile rectangle
+        xlim, ylim = to focus on area in the plot with real data
+        points_dist, points_val = blue scatter points along profile
+        prof_bin_mids, bin_val = red sliding mean along profile
+        intersect_dist = to draw the grey dashed line to mark fault-profile intersection on the cross section
+        intersect_angle = for text labelling
+    '''
+    # plot
+    fig, axs = plt.subplots(1, 2, figsize=(15, 5))
+
+    # East velocities
+    im = axs[0].scatter(xx_utm.flatten(), yy_utm.flatten(), s=2, c=vel_para.flatten(), cmap=cm.vik, vmin=-20, vmax=20)
+    axs[0].plot(fault_trace_utm[:, 0], fault_trace_utm[:, 1], color="red")
+    axs[0].plot([prof_start[0], prof_end[0]], [prof_start[1], prof_end[1]], color="red")
+    axs[0].plot(points_poly[:, 0], points_poly[:, 1], color="red")
+    axs[0].scatter(prof_start[0], prof_start[1], s=100, color='pink', edgecolor='black', zorder=3)
+    axs[0].scatter(prof_end[0], prof_end[1], s=100, color='black', edgecolor='white', zorder=3)
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes("right", size="5%", pad="2%")
+    plt.colorbar(im, cax=cax, label='Fault-parallel velocity (mm/yr)')
+    axs[0].set_aspect('equal', 'box')
+    axs[0].set_title('Fault-parallel')
+    axs[0].set_xlabel('x-coord (km)')
+    axs[0].set_ylabel('y-coord (km)')
+    axs[0].set_xlim(xlim)
+    axs[0].set_ylim(ylim)
+
+    # profile
+    axs[1].scatter(points_dist, points_val)
+    axs[1].plot(prof_bin_mids, bin_val, color="red")
+    axs[1].plot([intersect_dist, intersect_dist], [axs[1].get_ylim()[0], axs[1].get_ylim()[1]], color='grey',
+                linestyle='dashed')
+    axs[1].plot([axs[1].get_xlim()[0], axs[1].get_xlim()[1]], [0, 0], color='grey', linestyle='dashed')
+    axs[1].text(0.02, 0.90, 'intersection angle = ' + str(round(np.abs(intersect_angle))) + ' degrees', fontsize=14,
+                transform=axs[1].transAxes)
+    axs[1].set_xlabel("Distance along profile (km)")
+    axs[1].set_ylabel("Fault-parallel velocity (mm/yr)")
+    axs[1].yaxis.set_label_position("right")
+    axs[1].yaxis.tick_right()
+
+    fig.tight_layout(w_pad=4)
+    plt.show()
+
+
+def plot_creep_profile(x_prof, points_val, x, v, s1, s2, d1, d2, c, rms_forward):
+    # Plot comparison
+    fig, axs = plt.subplots(1, 1, figsize=(15, 8))
+
+    plt.scatter(x_prof, points_val)
+    plt.plot(x, v * 1000, c='r')
+    plt.plot([0, 0], [axs.get_ylim()[0], axs.get_ylim()[1]], color='grey', linestyle='dashed')
+
+    plt.text(0.02, 0.9, 'slip = ' + str(s1) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+    plt.text(0.25, 0.9, 'creep = ' + str(s2) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+    plt.text(0.02, 0.84, 'locking depth = ' + str(d1) + ' km', fontsize=14, transform=axs.transAxes)
+    plt.text(0.25, 0.84, 'creep depth = ' + str(d2) + ' km', fontsize=14, transform=axs.transAxes)
+    plt.text(0.02, 0.78, 'offset = ' + str(c) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+    plt.text(0.02, 0.65, 'RMS misfit = ' + str(round(rms_forward, 3)) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+
+    plt.xlabel('Perp. distance from fault (km)')
+    plt.ylabel('Fault-parallel velocity (mm/yr)')
+
+    plt.show()
+
+
+def plot_profile_model(x_prof, points_val, x, v, s, d, c, rms_forward):
+    # Plot comparison
+    fig, axs = plt.subplots(1, 1, figsize=(15, 8))
+
+    plt.scatter(x_prof, points_val)
+    plt.plot(x, v * 1000, c='r')
+    plt.plot([0, 0], [axs.get_ylim()[0], axs.get_ylim()[1]], color='grey', linestyle='dashed')
+    plt.plot([axs.get_xlim()[0], axs.get_xlim()[1]], [0, 0], color='grey', linestyle='dashed')
+
+    plt.text(0.15, 0.9, 'slip rate = ' + str(s) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+    plt.text(0.15, 0.84, 'locking depth = ' + str(d) + ' km', fontsize=14, transform=axs.transAxes)
+    plt.text(0.15, 0.78, 'offset = ' + str(c) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+    plt.text(0.15, 0.72, 'RMS misfit = ' + str(round(rms_forward, 3)) + ' mm/yr', fontsize=14, transform=axs.transAxes)
+
+    plt.xlabel('Perpendicular distance from surface fault trace (km)')
+    plt.ylabel('Fault-parallel velocity (mm/yr)')
+
+    plt.show()
+
+
+def plot_strain_profile(x_prof, points_val, x, v, intersect_angle, e_shear, e_shear_grad):
+    # Plot the original profile and model, and strain rate
+    fig, axs = plt.subplots(2, 1, figsize=(15, 15))
+
+    axs[0].scatter(x_prof, points_val)
+    axs[0].plot(x, v * 1000, c='r')
+    axs[0].plot([0, 0], [axs[0].get_ylim()[0], axs[0].get_ylim()[1]], color='grey', linestyle='dashed')
+    axs[0].text(0.02, 0.90, 'intersection angle = ' + str(round(np.abs(intersect_angle))) + ' degrees', fontsize=14,
+                transform=axs[0].transAxes)
+    axs[0].set_xlabel("Distance from fault (km)")
+    axs[0].set_ylabel("Fault-parallel velocity (mm/yr)")
+    axs[0].yaxis.set_label_position("right")
+    axs[0].yaxis.tick_right()
+
+    axs[1].plot(x, e_shear, c='r', label='Forward model')
+    axs[1].plot(x, e_shear_grad, c='b', label='Velocity gradient')
+    axs[1].plot([0, 0], [axs[1].get_ylim()[0], axs[1].get_ylim()[1]], color='grey', linestyle='dashed')
+    axs[1].legend(fontsize='x-large')
+    axs[1].set_xlabel("Distance from fault (km)")
+    axs[1].set_ylabel("Shear strain rate (/yr)")
+    axs[1].yaxis.set_label_position("right")
+    axs[1].yaxis.tick_right()
+
+    plt.show()
