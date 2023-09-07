@@ -15,6 +15,6 @@ The practical can also be run locally using Jupyter Notebooks. You'll find the r
 
 ### Acknowledgements
 
-Detailed guidance on the content was provided by John Elliott. Advice on the computational requirements of the practical was provided by Richard Rigby. This notebook was written using resources from the Tectonophysics (Tim Wright) and Inverse Theory (Phil Livermore) undergraduate modules at the University of Leeds. The strain rate sections were written by, and with the help of, Qi Ou. Thanks to everyone for their contributions.
+Detailed guidance on the content was provided by John Elliott. Advice on the computational requirements of the practical was provided by Richard Rigby. This notebook was written by Andrew Watson using resources from the Tectonophysics (Tim Wright) and Inverse Theory (Phil Livermore) undergraduate modules at the University of Leeds. The strain rate sections were written by, and with the help of, Qi Ou. Thanks to everyone for their contributions.
 
-Andrew Watson - 2021
+Andrew Watson, Qi Ou, John Condon - 2023
